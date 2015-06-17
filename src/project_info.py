@@ -1,8 +1,6 @@
 from genericpath import isfile
 from os.path import split, abspath, join
 
-__author__ = 'massaraksh'
-
 
 def defaultBranch(cwd, project):
     import imp

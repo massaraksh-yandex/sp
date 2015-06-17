@@ -1,5 +1,4 @@
-from os import listdir, getcwd
-from os.path import join, isdir
+from os import getcwd
 from git.exc import InvalidGitRepositoryError
 from git import Repo
 from platform.endpoint import Endpoint
@@ -7,6 +6,7 @@ from platform.utils import makeCommandDict
 from platform.check import *
 from platform.color import *
 from src.project_info import defaultBranch
+from src.utils import dirs
 
 
 class RepoStatus(Enum):
@@ -67,9 +67,7 @@ class Gbv(Endpoint):
     def _printRepos(self, params: Params, printWithBranch = None):
         printAll = 'all' in params.options
 
-        path = getcwd()
-        dirs = (dir for dir in listdir(path) if isdir(join(path, dir)) and not dir.startswith('.'))
-        for d in dirs:
+        for d in dirs(getcwd()):
             try:
                 r = Repo(d)
                 if not printWithBranch or r.active_branch.name == printWithBranch:
