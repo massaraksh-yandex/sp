@@ -61,7 +61,7 @@ class Gbv(Endpoint):
         if db != branch and db != '':
             branch = colored(branch, Color.violent, Style.bold)
 
-        print('{0:30} | {1} | {2}'.format(colored(name, Color.blue, Style.bold),
+        print('{0:40} | {1} | {2}'.format(colored(name, Color.blue, Style.bold),
                                           st, branch))
 
     def _printRepos(self, params: Params, printWithBranch = None):

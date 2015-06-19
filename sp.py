@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.4 -u
+#!/usr/bin/python3.4 -u
 from platform import utils
 from src.config import Config
 import sys

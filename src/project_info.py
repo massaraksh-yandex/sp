@@ -3,28 +3,32 @@ from os.path import split, abspath, join
 
 
 def defaultBranch(cwd, project):
-    import imp
     database = 'project_traits.py'
     def findProjectData(path):
         p = split(abspath(path))
         if not p[1]:
             return ''
 
-        traits = join(p[0], 'data', database)
-        if isfile(traits):
-            return traits
+        path = join(p[0], 'data')
+        if isfile(join(path, database)):
+            return path
         else:
             if p[1] == '':
                 return ''
             else:
                 return findProjectData(p[0])
 
-    path = findProjectData(cwd)
-
     defBranch = ''
+    path = findProjectData(cwd)
+    command = "cd {path} && python -c 'import project_traits; print project_traits.projectMainBranches'"
     try:
-        module = imp.load_source('projectMainBranches', path)
-        defBranch = module.projectMainBranches[project]['branch']
+        from subprocess import Popen, PIPE
+        process = Popen(command.format(path=path), shell=True, stdout=PIPE, stderr=PIPE)
+        out, err = process.communicate()
+
+        import ast
+        d = ast.literal_eval(out.decode("utf-8"))
+        defBranch = d[project]['branch']
     except Exception:
         pass
 
