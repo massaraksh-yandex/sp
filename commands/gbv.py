@@ -5,7 +5,7 @@ from platform.endpoint import Endpoint
 from platform.utils import makeCommandDict
 from platform.check import *
 from platform.color import *
-from src.project_info import defaultBranch
+from src.project_info import BranchSelector
 from src.utils import dirs
 
 
@@ -57,7 +57,7 @@ class Gbv(Endpoint):
         else:
             st = colored(st, Color.yellow, Style.bold)
 
-        db = defaultBranch(getcwd(), name)
+        db = self._defaultBranches[name]
         if db != branch and db != '':
             branch = colored(branch, Color.violent, Style.bold)
 
@@ -66,6 +66,7 @@ class Gbv(Endpoint):
 
     def _printRepos(self, params: Params, printWithBranch = None):
         printAll = 'all' in params.options
+        self._defaultBranches = BranchSelector(getcwd(), 'master')
 
         for d in dirs(getcwd()):
             try:

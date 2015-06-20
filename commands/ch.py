@@ -16,7 +16,7 @@ class Ch(Endpoint):
         return singleOptionCommand(self._checkoutSingle)
 
     def _checkoutSingle(self, p: Params):
-        checkout(lambda cwd, dir: p.targets[0])
+        checkout(lambda dir: p.targets[0])
 
 
 module_commands = makeCommandDict(Ch)

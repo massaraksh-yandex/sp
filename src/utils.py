@@ -11,8 +11,7 @@ def dirs(path):
 def checkout(branchSelector):
     cwd = getcwd()
     for d in dirs(cwd):
-        branchName = branchSelector(cwd, d)
-
+        branchName = branchSelector(d)
         try:
             r = Repo(d)
             if r.active_branch.name != branchName and branchName in r.heads:
