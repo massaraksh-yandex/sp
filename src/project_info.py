@@ -15,10 +15,7 @@ class BranchSelector(object):
             if isfile(join(path, database)):
                 return path
             else:
-                if p[1] == '':
-                    return ''
-                else:
-                    return findProjectData(p[0])
+                return findProjectData(p[0])
 
         path = findProjectData(cwd)
         command = "cd {path} && python -c 'import project_traits; print project_traits.projectMainBranches'"
