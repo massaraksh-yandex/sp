@@ -39,11 +39,11 @@ class Gbv(Endpoint):
         return [withBranch, allRepos]
 
     def repoStatusString(self, repo: Repo):
-        if len(repo.index.diff(None)):
+        if repo.is_dirty(index=False):
             return RepoStatus.diff
-        elif len(repo.index.diff(None, cached=True)):
+        elif repo.is_dirty():
             return RepoStatus.cached
-        elif len(repo.untracked_files):
+        elif repo.is_dirty(index=False, untracked_files=True):
             return RepoStatus.untracked
         else:
             return RepoStatus.clear
