@@ -1,86 +1,72 @@
 from os import getcwd
-from git.exc import InvalidGitRepositoryError
-from git import Repo
-from platform.endpoint import Endpoint
-from platform.utils import makeCommandDict
-from platform.check import *
-from platform.color import *
+from platform.commands.endpoint import Endpoint
+from platform.utils.utils import registerCommands
+from platform.statement.statement import Statement, Rule, singleOptionCommand
+from platform.color.color import Color, Style, colored
 from src.project_info import BranchSelector
+from src.repo import Repo
 from src.utils import dirs
-
-
-class RepoStatus(Enum):
-    clear = 0,
-    untracked = 1,
-    cached = 1,
-    diff = 2
+from platform.params.params import Params
 
 
 class Gbv(Endpoint):
     def name(self):
         return 'gbv'
 
-    def _help(self):
-        return ['{path} - печатает информацию о состоянии git-репозиториев в подпапках',
-                '{path} [--all] [имя_ветки]',
-                '{space}ключ --all - печатает все директории, даже если они не репозиторий git',
-                '{space}имя_ветки - печатает информацию только о репозиториях, в которых текущая ветка == имя_ветки']
+    def _info(self):
+        return ['{path} - печатает информацию о состоянии git-репозиториев в подпапках']
 
     def _rules(self):
-        withBranch = lambda p: self.printReposWithBranch if Size.equals(p.targets, 1) and \
-                                                            Check.optionNamesInSet(p, 'all') and \
-                                                            Empty.delimers(p) \
-                                                         else raiseWrongParsing()
+        wb = Statement(['{path} [--all] - печатает информацию о состоянии git-репозиториев',
+                        '{space}--all - печатает все директории, даже если они не репозиторий git'], self.printall,
+                       lambda p: Rule(p).empty().targets()
+                                        .empty().delimers()
+                                        .check().optionNamesInSet('all'))
 
-        allRepos = lambda p: self.printRepos if Empty.targets(p) and \
-                                                Check.optionNamesInSet(p, 'all') and \
-                                                Empty.delimers(p) \
-                                             else raiseWrongParsing()
-        return [withBranch, allRepos]
+        al = singleOptionCommand(['{path} имя_ветки - печатает информацию о состоянии git-репозиториев',
+                                  '{space}показываются репозитории, в которых текущая ветка == имя_ветки'],
+                                 self.printwithbranch)
 
-    def repoStatusString(self, repo: Repo):
-        if repo.is_dirty(index=False):
-            return RepoStatus.diff
-        elif repo.is_dirty():
-            return RepoStatus.cached
-        elif repo.is_dirty(index=False, untracked_files=True):
-            return RepoStatus.untracked
-        else:
-            return RepoStatus.clear
+        return [wb] + al
 
-    def printFolderInfo(self, name, status: RepoStatus, branch):
-        st = '*'
-        if status == RepoStatus.diff:
-            st = colored(st, Color.red, Style.bold)
-        elif status == RepoStatus.clear:
-            st = colored(st, Color.green, Style.bold)
-        else:
-            st = colored(st, Color.yellow, Style.bold)
+    def printwithbranch(self, p: Params):
+        self._printRepos(p, p.targets[0].value)
 
-        db = self._defaultBranches[name]
-        if db != branch and db != '':
-            branch = colored(branch, Color.violent, Style.bold)
-
-        print('{0:40} | {1} | {2}'.format(colored(name, Color.blue, Style.bold),
-                                          st, branch))
-
-    def _printRepos(self, params: Params, printWithBranch = None):
-        printAll = 'all' in params.options
-        self._defaultBranches = BranchSelector(getcwd(), 'master')
-
-        for d in dirs(getcwd()):
-            try:
-                r = Repo(d)
-                if not printWithBranch or r.active_branch.name == printWithBranch:
-                    self.printFolderInfo(d, self.repoStatusString(r), r.active_branch.name)
-            except InvalidGitRepositoryError:
-                if printAll and not printWithBranch:
-                    self.printFolderInfo(d, RepoStatus.diff, '<not a git repo>')
-
-    def printReposWithBranch(self, p: Params):
-        self._printRepos(p, p.targets[0])
-
-    def printRepos(self, p: Params):
+    def printall(self, p: Params):
         self._printRepos(p)
 
-module_commands = makeCommandDict(Gbv)
+    def _folder(self, repo: Repo):
+        status = colored('*', Color.green, Style.bold)
+        if repo.dirty:
+            status = colored('*', Color.red, Style.bold)
+
+        if repo.untracked or repo.cached:
+            status = status+' '+colored('*', Color.yellow, Style.bold)
+        else:
+            status = ' '+status+' '
+
+        branch = repo.branch
+        if self._branchnames[repo.name] != branch:
+            branch = colored(branch, Color.violent, Style.bold)
+
+        return '{name:40} | {status} | {branch}' \
+            .format(name=colored(repo.name, Color.blue, Style.bold),
+                    status=status,
+                    branch=branch)
+
+    def _printRepos(self, p: Params, preferred = None):
+        printAll = 'all' in p.options
+        self._branchnames = BranchSelector()
+
+        for path in dirs(getcwd()):
+            repo = Repo(path)
+
+            if preferred:
+                if repo.branch == preferred:
+                    print (self._folder(repo))
+            else:
+                if repo.valid or printAll:
+                    print (self._folder(repo))
+
+
+commands = registerCommands(Gbv)
