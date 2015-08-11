@@ -4,7 +4,7 @@ from platform.color.color import colored, Color
 from src.repo import Repo
 
 
-def dirs(path):
+def dirs(path = getcwd()):
     return (dir for dir in listdir(path) if isdir(join(path, dir)) and not dir.startswith('.'))
 
 

@@ -43,4 +43,14 @@ class Repo:
         return dirty, cached, untracked, valid
 
     def checkout(self, branch):
-        self.repo.checkout(branch)
+        return self.repo.checkout(branch)
+
+    def push(self, branch, remote):
+        return self.repo.push(remote, branch)
+
+    def gerpush(self, topic, for_branch):
+        path = 'HEAD:refs/for/{0}/{1}'.format(for_branch, topic)
+        return self.push(path, 'gerrit')
+
+    def rebase(self, to):
+        return self.repo.rebase(to)
