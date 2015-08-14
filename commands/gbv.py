@@ -3,7 +3,7 @@ from platform.commands.endpoint import Endpoint
 from platform.utils.utils import registerCommands
 from platform.statement.statement import Statement, Rule, singleOptionCommand
 from platform.color.color import Color, Style, colored
-from src.project_info import BranchSelector
+from src.branch_repo import BranchRepo
 from src.repo import Repo
 from src.utils import dirs
 from platform.params.params import Params
@@ -56,7 +56,7 @@ class Gbv(Endpoint):
 
     def _printRepos(self, p: Params, preferred = None):
         printAll = 'all' in p.options
-        self._branchnames = BranchSelector()
+        self._branchnames = BranchRepo()
 
         for path in dirs(getcwd()):
             repo = Repo(path)

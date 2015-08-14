@@ -3,7 +3,7 @@ from platform.commands.endpoint import Endpoint
 from platform.utils.utils import registerCommands
 from platform.params.params import Params
 from platform.statement.statement import singleOptionCommand
-from src.project_info import BranchSelector
+from src.branch_repo import BranchRepo
 from src.repo import Repo
 from src.utils import dirs
 
@@ -21,7 +21,7 @@ class Rebase(Endpoint):
             self._rebase)
 
     def _rebase(self, p: Params):
-        db = BranchSelector()
+        db = BranchRepo()
         for path in dirs():
             print(colored(path, Color.green))
             try:

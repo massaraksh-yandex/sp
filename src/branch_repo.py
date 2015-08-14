@@ -5,7 +5,7 @@ from platform.execute.local import local
 from platform.execute.run import run
 
 
-class BranchSelector(object):
+class BranchRepo(object):
     def _defaultBranches(self, cwd):
         database = 'project_traits.py'
 

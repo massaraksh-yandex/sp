@@ -2,7 +2,7 @@ from platform.statement.statement import Statement, Rule
 from platform.commands.endpoint import Endpoint
 from platform.params.params import Params
 from platform.utils.utils import registerCommands, readLineWithPrompt
-from src.project_info import BranchSelector
+from src.branch_repo import BranchRepo
 from src.utils import checkout
 
 
@@ -26,7 +26,7 @@ class Reset(Endpoint):
         ans = readLineWithPrompt('Выбрать для всех репозиториев ветки по-умолчанию? [yes/no]', 'yes')
 
         if ans == 'yes':
-            db = BranchSelector()
+            db = BranchRepo()
             checkout(lambda dir: db[dir], failed_or_pointless='all' in p.options)
         else:
             print('Отмена...')
