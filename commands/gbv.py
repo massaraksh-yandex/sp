@@ -1,7 +1,7 @@
-from os import getcwd
 from platform.commands.endpoint import Endpoint
-from platform.utils.utils import registerCommands
-from platform.statement.statement import Statement, Rule, singleOptionCommand
+from platform.utils.utils import register_commands
+from platform.statement.rule import Rule, Data, Op
+from platform.statement.create import create
 from platform.color.color import Color, Style, colored
 from src.branch_repo import BranchRepo
 from src.repo import Repo
@@ -13,21 +13,24 @@ class Gbv(Endpoint):
     def name(self):
         return 'gbv'
 
-    def _info(self):
-        return ['{path} - печатает информацию о состоянии git-репозиториев в подпапках']
+    def _about(self):
+        return '{path} - печатает информацию о состоянии git-репозиториев в подпапках'
 
     def _rules(self):
-        wb = Statement(['{path} [--all] - печатает информацию о состоянии git-репозиториев',
-                        '{space}--all - печатает все директории, даже если они не репозиторий git'], self.printall,
-                       lambda p: Rule(p).empty().targets()
-                                        .empty().delimers()
-                                        .check().optionNamesInSet('all'))
-
-        al = singleOptionCommand(['{path} имя_ветки - печатает информацию о состоянии git-репозиториев',
-                                  '{space}показываются репозитории, в которых текущая ветка == имя_ветки'],
-                                 self.printwithbranch)
-
-        return [wb] + al
+        return create('').extended()\
+            .statement('{path} [--all] - печатает информацию о состоянии git-репозиториев',
+                       '{space}--all - печатает все директории, даже если они не репозиторий git',
+                       result=self.printall,
+                       rule=Rule().empty(Data.Delimiter)
+                                  .empty(Data.Target)
+                                  .maybe_option('all'))\
+            .statement('{path} имя_ветки - печатает информацию о состоянии git-репозиториев',
+                       '{space}показываются репозитории, в которых текущая ветка == имя_ветки',
+                       result=self.printwithbranch,
+                       rule=Rule().empty(Data.Delimiter)
+                                  .size(Data.Target, Op.eq(1))
+                                  .maybe_option('all'))\
+            .product()
 
     def printwithbranch(self, p: Params):
         self._printRepos(p, p.targets[0].value)
@@ -54,19 +57,19 @@ class Gbv(Endpoint):
                     status=status,
                     branch=branch)
 
-    def _printRepos(self, p: Params, preferred = None):
+    def _printRepos(self, p: Params, preferred=None):
         printAll = 'all' in p.options
         self._branchnames = BranchRepo()
 
-        for path in dirs(getcwd()):
+        for path in dirs(show_hidden=printAll):
             repo = Repo(path)
 
             if preferred:
                 if repo.branch == preferred:
-                    print (self._folder(repo))
+                    print(self._folder(repo))
             else:
                 if repo.valid or printAll:
-                    print (self._folder(repo))
+                    print(self._folder(repo))
 
 
-commands = registerCommands(Gbv)
+commands = register_commands(Gbv)

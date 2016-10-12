@@ -1,39 +1,39 @@
 from genericpath import isfile
 from os.path import split, abspath, join
 from os import getcwd
-from platform.execute.local import local
-from platform.execute.run import run
+from platform.execute.run import Run
 
 
 class BranchRepo(object):
-    def _defaultBranches(self, cwd):
+    def _default_branches(self, cwd):
         database = 'project_traits.py'
 
-        def findProjectData(path):
-            p = split(abspath(path))
+        self.levels_to_project_traits = 0
+
+        def find_project_data(p, levels_to_project_traits):
+            p = split(abspath(p))
             if not p[1]:
-                return ''
+                return '', levels_to_project_traits
 
-            path = join(p[0], 'data')
-            if isfile(join(path, database)):
-                return path
+            if isfile(join(p[0], 'data', database)):
+                return p[0], levels_to_project_traits
             else:
-                return findProjectData(p[0])
+                return find_project_data(p[0], levels_to_project_traits+1)
 
-        path = findProjectData(cwd)
+        self.ws, self.levels_to_project_traits = find_project_data(cwd, 1)
         cmd = "python -c 'import project_traits; print project_traits.projectMainBranches'"
         try:
-            r = run(impl=local()).path(path).cmd(cmd).withstderr().call()
+            r = Run().path(join(self.ws, 'data')).cmd(cmd).join_err_and_out().call()
 
             from ast import literal_eval
             return literal_eval(r)
-        except Exception:
-            pass
+        except Exception as e:
+            print(str(e))
 
         return {}
 
-    def __init__(self, cwd = getcwd(), def_branch_name = 'master'):
-        self._data = self._defaultBranches(cwd)
+    def __init__(self, cwd=getcwd(), def_branch_name='master'):
+        self._data = self._default_branches(cwd)
         self._defaultBranchName = def_branch_name
 
     def __getitem__(self, arg):
