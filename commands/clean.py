@@ -24,7 +24,7 @@ class Clean(Endpoint):
 
     def _act(self, p: Params):
         project_traits = BranchRepo()
-        if project_traits.levels_to_project_traits != 1:
+        if not (1 <= project_traits.levels_to_project_traits < 3):
             return
 
         remove_this = [
@@ -39,13 +39,15 @@ class Clean(Endpoint):
         pattern = ' -o '.join(['-name "'+r+'"' for r in remove_this])
 
         self._exec_cmd('find . {0} | xargs rm -rf'.format(pattern))
-        self._exec_cmd('git submodule foreach "git checkout -- ."')
-        self._exec_cmd('git submodule foreach "git submodule update -f"')
 
-        cmd = 'rm -rf lib64 include'
-        print(colored('$ ' + cmd, Color.green))
-        for l in Run().path('..').cmd(cmd).exec():
-            print(l, end='')
+        if project_traits.levels_to_project_traits == 1:
+            self._exec_cmd('git submodule foreach "git checkout -- ."')
+            self._exec_cmd('git submodule foreach "git submodule update -f"')
+
+            cmd = 'rm -rf lib64 include'
+            print(colored('$ ' + cmd, Color.green))
+            for l in Run().path('..').cmd(cmd).exec():
+                print(l, end='')
 
 
 commands = register_commands(Clean)

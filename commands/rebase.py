@@ -25,7 +25,8 @@ class Rebase(Endpoint):
             print(colored(path, Color.green))
             try:
                 repo = Repo(path)
-                print(repo.rebase(db[path]))
+                if repo.branch == p.targets[0].value:
+                    print(repo.rebase(db[path]))
             except:
                 pass
 
